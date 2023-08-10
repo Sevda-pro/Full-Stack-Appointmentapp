@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Your head content here -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Namaste</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <form>
+    <h1>Book an appointment</h1>
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" class="form-control" id="name" name="name">
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone Number</label>
+      <input type="tel" class="form-control" id="phone" name="phone">
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" class="form-control" id="email" name="email">
+      <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="btn">Submit</button>
+  </form>
+
+  <div id="divdata"></div>
+
+  <script>
+    let btn = document.getElementById("btn");
+    let name = document.getElementById("name");
+    let email = document.getElementById("email");
+    let phone = document.getElementById("phone");
+    let divdata = document.getElementById("divdata");
+    btn.addEventListener("click", (e) => {
+      let n = name.value;
+      let p = phone.value;
+      let em = email.value;
+      e.preventDefault();
+      console.log("Button Clicked");
+      // Make a POST request
+      const config = {
+        method: 'POST',
+        url: 'http://localhost:3000/customer',
+        data: { name: n, phone: p, email: em }
+      };
+
+      axios(config)
+        .then((res) => {
+          console.log("POST response:");
+          console.log(res.data);
+        })
+        .catch((error) => {
+          console.log("POST error:", error);
+        });
+
+      axios.get('http://localhost:3000/customers')
+        .then((res) => {
+          console.log("GET response:");
+          res.data.forEach(element => {
+            divdata.innerHTML += `
+            <div id='${element.email}'>
+            <div>name: ${element.name}</div>
+            <div>phone: ${element.phone}</div>
+            <div>email: ${element.email}</div>
+            <button type="submit" class="btn btn-primary" onclick="myFunc1('${element.email}')">Edit</button> 
+            <button type="submit" class="btn btn-danger deletetn" onclick="myFunc2('${element.email}')">Delete</button> 
+            </div><br> <hr>`
+
+          });
+        })
+        .catch((err) => {
+          console.log("GET error:", err);
+        });
+
+    })
+    function myFunc1(ide) {
+      const newName = prompt("Enter new name");
+      const newPhone = prompt("Enter new Phone");
+
+
+      config = {
+        method: 'put',
+        url: `http://localhost:3000/customers/update/${ide}`,
+        data: { name: newName, phone: newPhone, email:ide}
+      }
+      axios(config)
+        .then((res) => {
+          const x = document.getElementById(ide);
+          if (x) {
+            x.innerHTML = `
+            <div id='${ide}'>
+            <div>name: ${newName}</div>
+            <div>phone: ${newPhone}</div>
+            <div>email: ${ide}</div>
+            <button type="submit" class="btn btn-primary" onclick="myFunc1('${ide}')">Edit</button> 
+            <button type="submit" class="btn btn-danger deletetn" onclick="myFunc2('${ide}')">Delete</button> 
+            </div><br> <hr>`
+          }
+        })
+
+    }
+    function myFunc2(ide) {
+      axios.delete(`http://localhost:3000/customers/${ide}`)
+        .then((res) => {
+          let x = document.getElementById(ide);
+          x.remove();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+    }
+  </script>
+</body>
+
+</html>
